@@ -1,0 +1,3 @@
+# view AndroidManifest.xml #generated:6
+-keep class io.github.xarus01.twittergif_mobile.twittergifmobile { <init>(...); }
+
