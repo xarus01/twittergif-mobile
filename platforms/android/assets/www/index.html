@@ -15,88 +15,6 @@
 var encoder, flag, count = 0;
 var message = document.querySelector("#message");
 
-function render(htmlcode) {
-//	htmlDoc = $(htmlcode);
-//    parser=new DOMParser();
-//    htmlDoc=parser.parseFromString(htmlcode, "text/html");
-//    alert(htmlDoc);
-	alert(htmlcode);
-	var i = htmlcode.indexOf("https://pbs.twimg.com/tweet_video");
-	var j = htmlcode.indexOf(".mp4") + 3;
-	alert(i);
-    var vid = document.createElement("video");
-    vid.id = "video";
-    var src = htmlcode.substr(i, j);
-    alert(src);
-    vid.src = src;
-//    vid.style.position = "absolute";
-//    vid.style.marginTop = "-999999px";
-    message.appendChild(vid);
-    var canv = document.createElement("canvas");
-    canv.id = "bitmap";
-//    canv.style.position = "absolute";
-//    canv.style.marginTop = "-999999px";
-    message.appendChild(canv);
-
-	var v = document.getElementById("video");
-	v.pause();
-	var canvas = document.getElementById('bitmap');
-	var context = canvas.getContext('2d');
-
-	var cw,ch;
-
-	v.crossOrign = "Anonymous";
-
-	v.addEventListener('play', function(){
-		cw = v.clientWidth;
-		ch = v.clientHeight;
-		canvas.width = cw;
-		canvas.height = ch;
-
-		encoder = new GIFEncoder();
-		encoder.setRepeat(0); //0  -> loop forever
-	//	        encoder.setDelay(50); //go to next frame every n milliseconds
-		encoder.start();
-		v.play();
-		draw(v,context,cw,ch);
-	},false);
-	v.play();
-	return;
-}
-
-function draw(v,c,w,h) {
-  if(v.paused || v.ended) {
-    encoder.setDelay(v.duration/count);
-    encoder.finish();
-    var binary_gif = encoder.stream().getData() //notice this is different from the as3gif package!
-    var data_url = 'data:image/gif;base64,'+encode64(binary_gif);
-    var img = document.createElement("img");
-    img.src = data_url;
-    img.style.width = w;
-    img.style.height = h;
-
-    var a = document.createElement("a");
-    a.href = data_url;
-    a.download = "twitter_gif.gif"
-    a.text = "Click to download!"
-
-    document.body.appendChild(img);
-
-    message.innerText = "";
-    message.appendChild(a);
-    return false;
-  }
-  if(flag) {
-    encoder.setSize(w, h);
-    flag = true;
-  } else {
-    count ++;
-    c.drawImage(v,0,0,w,h);
-    encoder.addFrame(c);
-  }
-  setTimeout(draw,20,v,c,w,h);
-}
-
 function httpGet(theUrl)
 {
     xmlhttp=new XMLHttpRequest();
@@ -104,10 +22,31 @@ function httpGet(theUrl)
     {
         if (xmlhttp.readyState==4 && xmlhttp.status==200)
         {
-        	alert("code 200");
-//            return xmlhttp.responseText;
-			return render(xmlhttp.responseText);
-//			return;
+            alert("http://api.monocuration.com/static/" + xmlhttp.responseText);
+            var fileTransfer = new FileTransfer();
+            var uri = encodeURI("http://api.monocuration.com/static/" + xmlhttp.responseText);
+
+            fileTransfer.download(
+                uri,
+                filePath,
+                function(entry) {
+                    alert("download complete: " + entry.fullPath);
+                },
+                function(error) {
+                    alert("download error source " + error.source);
+                    alert("download error target " + error.target);
+                    alert("upload error code" + error.code);
+                },
+                false,
+                {
+                    headers: {
+        //                    "Authorization": "Basic dGVzdHVzZXJuYW1lOnRlc3RwYXNzd29yZA=="
+                    }
+                }
+            );
+//            $("#message").append("<img style='width: 300px;' src='http://api.monocuration.com/static/" + xmlhttp.responseText + "'></img>");
+            alert("Done!");
+            return;
         }
     }
     xmlhttp.open("GET", theUrl, false );
@@ -118,8 +57,7 @@ document.addEventListener('deviceready', function () {
 	window.plugins.webintent.getExtra(window.plugins.webintent.EXTRA_TEXT, function (url) {
 				var temp = url.split(" : ")[1];
 				var data = temp.split("?")[0];
-	            alert(data);
-				httpGet(data);
+				httpGet("http://api.monocuration.com/twitter-gif?url=" + data);
 	        }, function() { //Fail
 	              alert ("error");          
 	});

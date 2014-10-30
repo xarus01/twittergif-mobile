@@ -1,0 +1,25 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<script type="text/javascript" src="js/jquery.js"></script>
+		<script type="text/javascript" src="js/gif.js"></script>
+	</head>
+	<body>
+		<video src="https://pbs.twimg.com/tweet_video/B01X8zMCMAA-7ud.mp4" id="video"></video>
+		<script type="text/javascript">
+			var sampleInterval = 80;
+			var video = $("#video");
+			var gif = new GIF({
+				workers: 2,
+				quality: 10
+			});
+
+			gif.addFrame(video, {copy: true, delay: sampleInterval});
+
+			gif.on('finished', function(blob) {
+				window.open(URL.createObjectURL(blob));
+			});
+
+			gif.render();
+		</script>
+	</body>
